@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --app-dark: #060B14;
+    --app-card: #0E1726;
+    --app-border: #1F2E45;
+    --gold-primary: #F5B82E;
+    --gold-glow: #E5A512;
+    /* Paper — warm sage-white, not the cream/terracotta default */
+    --color-paper: #F2F4EE;
+  --color-paper-dim: #E9ECE3;
+
+  /* Ink — deep green-black, not pure #111 */
+  --color-ink: #14231E;
+  --color-ink-soft: #3C4A44;
+  --color-ink-faint: #8A948E;
+
+  /* Marigold — primary action accent */
+  --color-marigold: #E2A33B;
+  --color-marigold-deep: #C4841F;
+  --color-marigold-tint: #FBEDD3;
+
+  /* Banyan green — money / earned / success */
+  --color-banyan: #2F6F4E;
+  --color-banyan-deep: #1F4E36;
+  --color-banyan-tint: #DFEEE4;
+
+  /* Coral — reserved for warnings / errors / negative amounts only */
+  --color-coral: #C1503A;
+  --color-coral-tint: #F7E1DC;
+
+  --color-surface: #FFFFFF;
+
+  --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+
+  --radius-card: 1.5rem;
+  --radius-chip: 0.75rem;
+  --radius-control: 1rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background: var(--app-dark);
+  color: #e2e8f0;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Numerals in money contexts always use the display face, tabular so amounts align */
+.num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+::selection {
+  background: rgba(245, 184, 46, 0.3);
+  color: white;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.glow-gold-btn {
+      box-shadow: 0 0 14px rgba(245, 184, 46, 0.45);
+    }
+    .glow-cyan-card {
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.15) inset, 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+    .glow-purple-card {
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.2) inset, 0 0 16px rgba(168, 85, 247, 0.25);
+    }
+    .glow-elevated-btn {
+      box-shadow: 0 0 18px rgba(245, 184, 46, 0.5);
+    }
+    .glow-amber-card {
+      border: 1px solid rgba(245, 184, 46, 0.3);
+      box-shadow: 0 0 16px rgba(245, 184, 46, 0.1) inset, 0 0 12px rgba(245, 184, 46, 0.15);
+    }
+    .glow-blue-card {
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.1) inset, 0 0 12px rgba(59, 130, 246, 0.15);
+    }
