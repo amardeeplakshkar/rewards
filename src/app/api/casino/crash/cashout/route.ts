@@ -1,0 +1,1 @@
+import { withApi, ok } from '@/lib/api/handler'; import { multiplierCashout } from '@/services/casino-games'; export const POST=withApi(async({payload,req,user},request)=>{const b=await request.json();return ok(await multiplierCashout(payload,req,user!.id,Number(b.roundId)))})

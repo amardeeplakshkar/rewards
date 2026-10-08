@@ -1,0 +1,1 @@
+import { withApi, ok } from '@/lib/api/handler'; import { mineStatus } from '@/services/casino-games'; export const GET=withApi(async({payload,req,user})=>ok({round:await mineStatus(payload,req,user!.id)}))

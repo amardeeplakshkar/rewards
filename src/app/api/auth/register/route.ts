@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { generatePayloadCookie } from 'payload/shared'
-import { getPayloadClient } from '@/lib/payload'
+import { getUserPayloadClient } from '@/lib/payload'
 import { AppError, isAppError } from '@/lib/errors'
 import { registerUser } from '@/services/user'
 
@@ -17,7 +17,7 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = schema.parse(await req.json())
-    const payload = await getPayloadClient()
+    const payload = await getUserPayloadClient()
     const user = await registerUser({ payload, headers: req.headers, ...body })
 
     const requireVerify = process.env.REQUIRE_EMAIL_VERIFICATION === 'true'

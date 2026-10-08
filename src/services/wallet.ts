@@ -8,7 +8,7 @@ import { logAudit } from './audit'
 import { withFlag } from './context'
 import { notify } from './notification'
 
-type Req = Partial<PayloadRequest> | undefined
+export type Req = Partial<PayloadRequest> | undefined
 
 const walletLockKey = (userId: number | string) => `wallet:${userId}`
 
@@ -67,7 +67,7 @@ export interface PostedEntry {
  *   3. validates the new balances (never negative),
  *   4. appends an immutable ledger row and updates the wallet.
  */
-async function postEntry(e: PostEntry): Promise<PostedEntry> {
+export async function postEntry(e: PostEntry): Promise<PostedEntry> {
   const { payload } = e
   if (!Number.isSafeInteger(e.signedAmount) || e.signedAmount === 0) throw new AppError('BAD_REQUEST', 'Invalid ledger amount')
 
@@ -158,6 +158,34 @@ export interface CreditInput {
 export function creditWallet(i: CreditInput): Promise<PostedEntry> {
   assertPositiveMinor(i.amount)
   return postEntry({ ...i, signedAmount: i.amount, earnedDelta: i.amount })
+}
+
+export function debitWallet(i: {
+  payload: Payload
+  req?: Req
+  userId: number
+  amount: number
+  description: string
+  idempotencyKey: string
+  referenceType?: string
+  referenceId?: string | number
+  metadata?: Record<string, unknown>
+  ignoreFrozen?: boolean
+}): Promise<PostedEntry> {
+  assertPositiveMinor(i.amount)
+  return postEntry({
+    payload: i.payload,
+    req: i.req,
+    userId: i.userId,
+    type: 'ADMIN_DEBIT',
+    signedAmount: -i.amount,
+    description: i.description,
+    idempotencyKey: i.idempotencyKey,
+    referenceType: i.referenceType,
+    referenceId: i.referenceId,
+    metadata: i.metadata,
+    ignoreFrozen: i.ignoreFrozen,
+  })
 }
 
 export function debitForWithdrawal(i: { payload: Payload; req?: Req; userId: number; amount: number; withdrawalId: number; idempotencyKey: string }) {

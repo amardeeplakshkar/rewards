@@ -28,6 +28,7 @@ export type RewardSource = (typeof REWARD_SOURCES)[number]
 export const TRANSACTION_TYPES = [
   'TASK_REWARD',
   'GAME_REWARD',
+  'GAME_BET',
   'CAMPAIGN_REWARD',
   'REFERRAL_REWARD',
   'BONUS',
@@ -75,7 +76,7 @@ export type TaskCompletionStatus = (typeof TASK_COMPLETION_STATUSES)[number]
 export const TASK_VERIFICATION_TYPES = ['NONE', 'TIMER', 'ANSWER_CODE', 'TEXT_SUBMISSION', 'MANUAL_REVIEW'] as const
 export type TaskVerificationType = (typeof TASK_VERIFICATION_TYPES)[number]
 
-export const GAME_TYPES = ['QUIZ', 'SUDOKU', 'MEMORY', 'NUMBER_SEQUENCE', 'MATH', 'REACTION', 'SPIN_WHEEL'] as const
+export const GAME_TYPES = ['QUIZ', 'SUDOKU', 'MEMORY', 'NUMBER_SEQUENCE', 'MATH', 'REACTION', 'SPIN_WHEEL', 'WINGO'] as const
 export type GameType = (typeof GAME_TYPES)[number]
 
 export const DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'] as const

@@ -1,4 +1,5 @@
 allowBuilds:
+  '@heroui/shared-utils': false
   esbuild: false
 minimumReleaseAgeExclude:
   - dotenv@18.0.2

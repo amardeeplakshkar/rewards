@@ -1,9 +1,28 @@
-import config from '@payload-config'
 import { REST_DELETE, REST_GET, REST_OPTIONS, REST_PATCH, REST_POST, REST_PUT } from '@payloadcms/next/routes'
 
-export const GET = REST_GET(config)
-export const POST = REST_POST(config)
-export const DELETE = REST_DELETE(config)
-export const PATCH = REST_PATCH(config)
-export const PUT = REST_PUT(config)
-export const OPTIONS = REST_OPTIONS(config)
+const getPayloadConfig = async () => (await import('@payload-config')).default
+
+export const GET = async (request: Request, args: { params: Promise<{ slug?: string[] }> }) => {
+  const config = await getPayloadConfig()
+  return REST_GET(config as any)(request, args)
+}
+export const POST = async (request: Request, args: { params: Promise<{ slug?: string[] }> }) => {
+  const config = await getPayloadConfig()
+  return REST_POST(config as any)(request, args)
+}
+export const DELETE = async (request: Request, args: { params: Promise<{ slug?: string[] }> }) => {
+  const config = await getPayloadConfig()
+  return REST_DELETE(config as any)(request, args)
+}
+export const PATCH = async (request: Request, args: { params: Promise<{ slug?: string[] }> }) => {
+  const config = await getPayloadConfig()
+  return REST_PATCH(config as any)(request, args)
+}
+export const PUT = async (request: Request, args: { params: Promise<{ slug?: string[] }> }) => {
+  const config = await getPayloadConfig()
+  return REST_PUT(config as any)(request, args)
+}
+export const OPTIONS = async (request: Request, args: { params: Promise<{ slug?: string[] }> }) => {
+  const config = await getPayloadConfig()
+  return REST_OPTIONS(config as any)(request, args)
+}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { generatePayloadCookie } from 'payload/shared'
-import { getPayloadClient } from '@/lib/payload'
+import { getUserPayloadClient } from '@/lib/payload'
 import { AppError, isAppError } from '@/lib/errors'
 import { enforceRateLimit, LIMITS } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/request-meta'
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     await enforceRateLimit(LIMITS.loginIp, ip, 'Too many login attempts from this network. Please try again later.')
     await enforceRateLimit(LIMITS.loginAccount, body.email.toLowerCase(), 'Too many login attempts for this account. Please try again later.')
 
-    const payload = await getPayloadClient()
+    const payload = await getUserPayloadClient()
     const result = await payload.login({ collection: 'users', data: body, req: { headers: req.headers } as never }).catch(() => null)
     if (!result?.user || !result.token) throw new AppError('UNAUTHENTICATED', 'Incorrect email or password.')
     if (result.user.status === 'BLOCKED' || result.user.status === 'DELETED') throw new AppError('ACCOUNT_RESTRICTED', 'This account is not able to sign in.')

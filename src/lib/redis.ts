@@ -1,3 +1,4 @@
+// import 'server-only'
 import Redis from 'ioredis'
 import { REDIS_PREFIX } from '@/constants'
 import { isProd } from './env'

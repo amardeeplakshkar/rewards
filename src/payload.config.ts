@@ -7,6 +7,7 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { s3Storage } from '@payloadcms/storage-s3'
 import sharp from 'sharp'
 
+import { env } from './lib/env'
 import { Admins } from './collections/Admins'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -21,6 +22,7 @@ import { QuizQuestions } from './collections/QuizQuestions'
 import { SudokuPuzzles } from './collections/SudokuPuzzles'
 import { Campaigns } from './collections/Campaigns'
 import { CampaignClaims } from './collections/CampaignClaims'
+import { CasinoRounds } from './collections/CasinoRounds'
 import { ReferralRules } from './collections/ReferralRules'
 import { Referrals } from './collections/Referrals'
 import { Withdrawals } from './collections/Withdrawals'
@@ -31,18 +33,27 @@ import { Notifications } from './collections/Notifications'
 import { AuditLogs } from './collections/AuditLogs'
 import { FeatureSettings, LegalSettings, RewardSettings, SiteSettings } from './globals'
 import { DEFAULT_TIMEZONE } from './constants'
+import { WingoBets } from './collections/WingoBets'
+import { WingoPointTransactions } from './collections/WingoPointTransactions'
+import { WingoPointWallets } from './collections/WingoPointWallets'
+import { WingoRounds } from './collections/WingoRounds'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+const fallbackPayloadSecret = 'dev-payload-secret-change-me'
+if (!process.env.PAYLOAD_SECRET && process.env.NODE_ENV !== 'production') {
+  process.env.PAYLOAD_SECRET = fallbackPayloadSecret
+}
+const runtimeEnv = env()
+const appUrl = runtimeEnv.NEXT_PUBLIC_APP_URL
 
 const s3Enabled = Boolean(process.env.S3_BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY)
 const smtpEnabled = Boolean(process.env.SMTP_HOST)
 
 export default buildConfig({
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: runtimeEnv.PAYLOAD_SECRET,
   serverURL: appUrl,
-  cookiePrefix: 'rw',
+  cookiePrefix: 'rw-admin',
   cors: [appUrl],
   csrf: [appUrl],
   graphQL: { disable: true },
@@ -81,6 +92,7 @@ export default buildConfig({
     SudokuPuzzles,
     Campaigns,
     CampaignClaims,
+    CasinoRounds,
     ReferralRules,
     Referrals,
     Withdrawals,
@@ -90,13 +102,17 @@ export default buildConfig({
     Notifications,
     Media,
     AuditLogs,
+    WingoRounds,
+    WingoBets,
+    WingoPointWallets,
+    WingoPointTransactions,
   ],
   globals: [SiteSettings, RewardSettings, FeatureSettings, LegalSettings],
   editor: lexicalEditor(),
   db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URL || '', max: 20, idleTimeoutMillis: 30_000 },
+    pool: { connectionString: runtimeEnv.DATABASE_URL, max: 20, idleTimeoutMillis: 30_000 },
     // Dev: auto-sync the schema. Production: keep false and run `npm run migrate`.
-    push: process.env.DB_PUSH === 'true',
+    push: runtimeEnv.DB_PUSH,
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
   email: smtpEnabled

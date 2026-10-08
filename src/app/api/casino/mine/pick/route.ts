@@ -1,0 +1,1 @@
+import { withApi, ok } from '@/lib/api/handler'; import { minePick } from '@/services/casino-games'; export const POST=withApi(async({payload,req,user},request)=>{const b=await request.json();return ok(await minePick(payload,req,user!.id,Number(b.roundId),Number(b.point)))})

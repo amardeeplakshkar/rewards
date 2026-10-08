@@ -17,6 +17,8 @@ import { MemoryPlay } from './MemoryPlay'
 import { ReactionPlay } from './ReactionPlay'
 import { SudokuPlay } from './SudokuPlay'
 import { SpinWheelPlay } from './SpinWheelPlay'
+import { WingoPlay } from './WingoPlay'
+import { CasinoGamesPlay } from './CasinoGamesPlay'
 
 interface GameListItem {
   id: number
@@ -45,8 +47,15 @@ const FALLBACK_GAMES: Record<string, Partial<GameListItem>> = {
   'memory-match': { id: -3, name: 'Memory Match', slug: 'memory-match', description: 'Find all the pairs before time runs out.', type: 'MEMORY' },
   'math-challenge': { id: -4, name: 'Math Challenge', slug: 'math-challenge', description: 'Solve the equations and boost your score.', type: 'MATH' },
   'reaction-test': { id: -5, name: 'Reaction Test', slug: 'reaction-test', description: 'Stay sharp and click at the right moment.', type: 'REACTION' },
-  'spin-wheel': { id: -6, name: 'Spin Wheel', slug: 'spin-wheel', description: 'Spin for a chance at instant rewards.', type: 'SPIN_WHEEL' },
-  'number-sequence': { id: -7, name: 'Number Sequence', slug: 'number-sequence', description: 'Find the next number in the pattern.', type: 'NUMBER_SEQUENCE' },
+  wingo: { id: -6, name: 'Wingo', slug: 'wingo', description: 'Pick the lucky number and win a fast reward.', type: 'WINGO' },
+  'spin-wheel': { id: -7, name: 'Spin Wheel', slug: 'spin-wheel', description: 'Spin for a chance at instant rewards.', type: 'SPIN_WHEEL' },
+  'number-sequence': { id: -8, name: 'Number Sequence', slug: 'number-sequence', description: 'Find the next number in the pattern.', type: 'NUMBER_SEQUENCE' },
+  mine: { id: -101, name: 'Mine', slug: 'mine', description: 'Find safe tiles and multiply your bet.', type: 'MINE' },
+  videopoker: { id: -102, name: 'Video Poker', slug: 'videopoker', description: 'Hold cards and draw for a winning hand.', type: 'POKER' },
+  'video-poker': { id: -102, name: 'Video Poker', slug: 'video-poker', description: 'Hold cards and draw for a winning hand.', type: 'POKER' },
+  crash: { id: -103, name: 'Crash', slug: 'crash', description: 'Cash out before the multiplier crashes.', type: 'CRASH' },
+  slide: { id: -104, name: 'Slide', slug: 'slide', description: 'Ride the multiplier and cash out in time.', type: 'SLIDE' },
+  mines: { id: -101, name: 'Mine', slug: 'mines', description: 'Find safe tiles and multiply your bet.', type: 'MINE' },
 }
 
 export default function GamePlayPage() {
@@ -124,6 +133,23 @@ export default function GamePlayPage() {
     )
   }
 
+  if (['mine', 'videopoker', 'video-poker', 'crash', 'slide', 'mines'].includes(slug)) {
+    const casinoGame = FALLBACK_GAMES[slug] as GameListItem
+    return (
+      <AppShell>
+        <div className="mb-3 flex items-center gap-2">
+          <Link href="/games" className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-2">
+            <ChevronLeft size={20} className="text-text-soft" />
+          </Link>
+          <h1 className="text-[18px] font-semibold">{casinoGame.name}</h1>
+        </div>
+        <div className="pb-8">
+          <CasinoGamesPlay slug={slug} />
+        </div>
+      </AppShell>
+    )
+  }
+
   return (
     <AppShell>
       <div className="mb-3 flex items-center gap-2">
@@ -167,6 +193,8 @@ function PlayArea({ state, onSubmit }: { state: unknown; onSubmit: (answer: unkn
       return <ReactionPlay state={state as never} onSubmit={onSubmit} />
     case 'SUDOKU':
       return <SudokuPlay state={state as never} onSubmit={onSubmit} />
+    case 'WINGO':
+      return <WingoPlay state={state as never} onSubmit={onSubmit} />
     case 'SPIN_WHEEL':
       return <SpinWheelPlay state={state as never} onSubmit={onSubmit} />
     default:

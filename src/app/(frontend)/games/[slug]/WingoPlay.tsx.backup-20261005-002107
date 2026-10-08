@@ -1,0 +1,132 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CircleHelp, Clock3, Minus, Plus, RefreshCw, Wallet, X } from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuth } from '@/components/AuthProvider'
+import { api, ApiError } from '@/lib/api-client'
+
+type Mode = '30s' | '1m' | '3m' | '5m'
+type BetType = 'number' | 'color' | 'size'
+type Result = { period: string; mode: Mode; number: number; size: 'Big' | 'Small'; colors: string[]; createdAt: string }
+type Bet = { id: number | string; period: string; mode: Mode; type: BetType; selection: string; amount: number; payout: number; status: 'PENDING' | 'WON' | 'LOST'; number: number | null; placedAt: string; settledAt?: string | null }
+type State = { mode: Mode; balance: number; currentRound: { periodKey: string; endsAt: string; bettingClosesAt: string; remainingSeconds: number; status: string }; results: Result[]; bets: Bet[] }
+type Tab = 'game' | 'chart' | 'mine'
+
+const MODES: { id: Mode; label: string; seconds: number }[] = [
+  { id: '30s', label: 'Win Go 30s', seconds: 30 },
+  { id: '1m', label: 'Win Go 1Min', seconds: 60 },
+  { id: '3m', label: 'Win Go 3Min', seconds: 180 },
+  { id: '5m', label: 'Win Go 5Min', seconds: 300 },
+]
+const COLORS = ['Green', 'Violet', 'Red'] as const
+const CHIP_VALUES = [1, 10, 100, 1000]
+const fmt = (n: number) => n.toLocaleString('en-IN')
+const countdown = (s: number) => `${String(Math.floor(Math.max(0, s) / 60)).padStart(2, '0')}:${String(Math.max(0, s) % 60).padStart(2, '0')}`
+const resultColor = (n: number) => n === 0 ? 'bg-rose-500' : n === 5 ? 'bg-violet-500' : n % 2 ? 'bg-emerald-500' : 'bg-rose-500'
+
+export function WingoPlay(_props?: { state?: unknown; onSubmit?: (answer: unknown) => void }) {
+  const { user } = useAuth()
+  const [mode, setMode] = useState<Mode>('30s')
+  const [data, setData] = useState<State | null>(null)
+  const [amount, setAmount] = useState(10)
+  const [selection, setSelection] = useState<{ type: BetType; value: string } | null>(null)
+  const [tab, setTab] = useState<Tab>('game')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [placing, setPlacing] = useState(false)
+  const [clock, setClock] = useState(Date.now())
+
+  const load = useCallback(async (quiet = false) => {
+    if (!user) { setLoading(false); return }
+    if (!quiet) setLoading(true)
+    try {
+      const next = await api.get<State>(`/wingo/state?mode=${mode}`)
+      setData(next)
+    } catch (error) {
+      if (!quiet) toast.error(error instanceof ApiError ? error.message : 'Could not load Wingo state.')
+    } finally {
+      setLoading(false)
+    }
+  }, [mode, user])
+
+  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setClock(Date.now())
+      void load(true)
+    }, 2500)
+    return () => window.clearInterval(timer)
+  }, [load])
+
+  const secondsLeft = useMemo(() => {
+    if (!data?.currentRound.endsAt) return 0
+    return Math.max(0, Math.ceil((new Date(data.currentRound.endsAt).getTime() - clock) / 1000))
+  }, [data, clock])
+  const modeResults = data?.results ?? []
+  const modeBets = data?.bets ?? []
+  const recentResults = modeResults.slice(0, 5)
+  const selectedLabel = selection ? `${selection.type === 'number' ? 'Number' : selection.type === 'color' ? 'Color' : 'Size'}: ${selection.value}` : 'Choose your pick'
+
+  const pick = (type: BetType, value: string) => setSelection((prev) => prev?.type === type && prev.value === value ? null : { type, value })
+  const submitBet = async () => {
+    if (!selection || !data || placing) return
+    if (amount > data.balance) { toast.error('Not enough Wingo points.'); return }
+    setPlacing(true)
+    try {
+      await api.post('/wingo/bets', { mode, type: selection.type, selection: selection.value, amount, idempotencyKey: crypto.randomUUID() })
+      toast.success('Bet placed for the current round.')
+      setSelection(null)
+      setConfirmOpen(false)
+      await load(true)
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Could not place bet.')
+      await load(true)
+    } finally {
+      setPlacing(false)
+    }
+  }
+
+  if (!user) return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center"><h2 className="text-xl font-bold">Sign in to play Wingo</h2><p className="mt-2 text-sm text-slate-500">Your virtual points and bet history are tied to your account.</p></div>
+
+  return (
+    <div className="min-h-screen bg-[#f4f1e9] pb-9 text-slate-900">
+      <header className="relative overflow-hidden bg-[#ffd83d]">
+        <div className="mx-auto w-[min(100%-36px,1080px)] py-5 pb-20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3"><div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-900 text-lg font-extrabold text-[#ffd83d]">51</div><div><div className="text-base font-extrabold">51GAME</div><div className="mt-1 text-[9px] uppercase tracking-[0.16em] text-slate-700/70">PLAY ROOM / WINGO</div></div></div>
+            <button type="button" aria-label="Open game rules" onClick={() => setHelpOpen(true)} className="grid h-9 w-9 place-items-center rounded-full border border-slate-900/15 bg-white/40"><CircleHelp size={17} /></button>
+          </div>
+          <div className="mt-6 max-w-xl"><div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-700/75"><span className="h-2.5 w-2.5 rounded-full bg-emerald-600" /> Virtual points · server-settled rounds</div><h1 className="mt-3 text-4xl font-extrabold leading-[1.08] tracking-[-0.08em] sm:text-5xl">Pick a side.<br />Watch it land.</h1><p className="mt-2 text-sm text-slate-700/75">Place a prediction before the round closes.</p></div>
+        </div>
+      </header>
+
+      <main className="mx-auto -mt-14 w-[min(100%-36px,1080px)]">
+        <section className="flex items-center justify-between gap-4 rounded-[18px] border border-slate-900/5 bg-white px-5 py-4 shadow-sm"><div><div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500"><Wallet size={13} /> Wingo points</div><div className="mt-2 flex items-baseline gap-2 text-3xl font-extrabold tracking-[-0.06em]">{loading && !data ? '—' : fmt(data?.balance ?? 0)}<small className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">points</small></div></div><span className="rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-emerald-800">No cash value</span></section>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.85fr)]">
+          <div className="grid content-start gap-4">
+            <section className="rounded-[17px] border border-slate-900/5 bg-white p-4 shadow-sm"><div className="grid grid-cols-4 gap-2 rounded-xl bg-[#f5f3ee] p-1.5">{MODES.map((m) => <button key={m.id} type="button" onClick={() => { setMode(m.id); setSelection(null) }} className={`min-h-[39px] rounded-lg text-[11px] font-extrabold ${mode === m.id ? 'bg-slate-900 text-white shadow' : 'text-slate-500'}`}>{m.id === '30s' ? '30 sec' : m.id === '1m' ? '1 min' : m.id === '3m' ? '3 min' : '5 min'}</button>)}</div><div className="mt-3 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500"><span>{MODES.find((m) => m.id === mode)?.label}</span><span>UTC round · {MODES.find((m) => m.id === mode)?.seconds}s</span></div></section>
+
+            <section className="relative grid gap-3 overflow-hidden rounded-[17px] bg-slate-900 p-4 text-white md:grid-cols-[1fr_auto] md:items-center"><div><div className="text-[9px] uppercase tracking-[0.16em] text-white/60">Current issue</div><div className="mt-2 break-all font-mono text-xs text-white/90">{data?.currentRound.periodKey ?? 'Loading round…'}</div><div className="mt-4 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70">Next result in</div><div className="mt-1 font-mono text-3xl font-bold tracking-[-0.06em] text-[#ffd83d]">{countdown(secondsLeft)}</div><div className="mt-1 text-[8px] uppercase tracking-[0.12em] text-white/40">minutes : seconds</div></div><div className="text-right"><div className="text-[9px] uppercase tracking-[0.14em] text-white/50">Recent results</div><div className="mt-3 flex justify-end gap-2">{recentResults.length ? recentResults.map((r) => <span key={r.period} title={`${r.period}: ${r.number}`} className={`grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold text-white ${resultColor(r.number)}`}>{r.number}</span>) : <span className="text-xs text-white/50">No settled rounds yet</span>}</div></div></section>
+
+            <section className="rounded-[17px] border border-slate-900/5 bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="text-sm font-extrabold">Make your pick</h2><button onClick={() => void load()} className="flex items-center gap-1 text-xs text-slate-500"><RefreshCw size={13} /> Refresh</button></div><div className="mt-4 grid grid-cols-3 gap-2">{COLORS.map((c) => <button key={c} onClick={() => pick('color', c)} className={`rounded-xl py-3 text-sm font-bold text-white ${c === 'Green' ? 'bg-emerald-500' : c === 'Red' ? 'bg-rose-500' : 'bg-violet-500'} ${selection?.type === 'color' && selection.value === c ? 'ring-4 ring-slate-900/25' : ''}`}>{c}</button>)}</div><div className="mt-3 grid grid-cols-5 gap-2">{Array.from({ length: 10 }, (_, n) => <button key={n} onClick={() => pick('number', String(n))} className={`grid aspect-square place-items-center rounded-full text-sm font-extrabold text-white ${resultColor(n)} ${selection?.type === 'number' && selection.value === String(n) ? 'ring-4 ring-slate-900/25' : ''}`}>{n}</button>)}</div><div className="mt-3 grid grid-cols-2 gap-2">{(['Big', 'Small'] as const).map((s) => <button key={s} onClick={() => pick('size', s)} className={`rounded-xl py-3 text-sm font-bold text-white ${s === 'Big' ? 'bg-sky-500' : 'bg-indigo-500'} ${selection?.type === 'size' && selection.value === s ? 'ring-4 ring-slate-900/25' : ''}`}>{s}</button>)}</div>
+              <div className="mt-5 flex items-center justify-between"><span className="text-xs font-semibold text-slate-500">Stake (points)</span><div className="flex items-center gap-2"><button aria-label="Decrease stake" onClick={() => setAmount((n) => Math.max(1, n - 1))} className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100"><Minus size={14} /></button><input aria-label="Stake points" inputMode="numeric" type="number" min={1} max={100000} value={amount} onChange={(e) => setAmount(Math.max(1, Math.min(100000, Math.floor(Number(e.target.value) || 1))))} className="h-9 w-24 rounded-lg border border-slate-200 text-center text-sm font-bold" /><button aria-label="Increase stake" onClick={() => setAmount((n) => Math.min(100000, n + 1))} className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100"><Plus size={14} /></button></div></div><div className="mt-2 grid grid-cols-4 gap-2">{CHIP_VALUES.map((v) => <button key={v} onClick={() => setAmount(v)} className={`rounded-lg py-2 text-xs font-bold ${amount === v ? 'bg-amber-300' : 'bg-slate-100 text-slate-600'}`}>{v.toLocaleString()}</button>)}</div>
+              <div className="mt-4 flex items-center justify-between rounded-xl bg-[#f5f3ee] px-3 py-3"><div><div className="text-[9px] uppercase tracking-[0.12em] text-slate-500">Selected bet</div><div className="mt-1 text-sm font-extrabold">{selectedLabel}</div></div><button disabled={!selection || placing || !data || secondsLeft <= 1 || data.currentRound.status !== 'OPEN'} onClick={() => setConfirmOpen(true)} className="rounded-xl bg-slate-900 px-5 py-3 text-xs font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40">{placing ? 'Placing…' : 'Place bet'}</button></div><p className="mt-2 text-[10px] leading-relaxed text-slate-500">Bets close before the timer reaches zero. Results and point settlement are calculated by the server.</p>
+            </section>
+          </div>
+
+          <aside className="rounded-[17px] border border-slate-900/5 bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="text-sm font-extrabold">History</h2><Clock3 size={16} className="text-slate-400" /></div><div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-[#f5f3ee] p-1">{([{ id: 'game', label: 'Game' }, { id: 'chart', label: 'Chart' }, { id: 'mine', label: 'My bets' }] as const).map((t) => <button key={t.id} onClick={() => setTab(t.id)} className={`rounded-lg py-2 text-[11px] font-bold ${tab === t.id ? 'bg-slate-900 text-white' : 'text-slate-500'}`}>{t.label}</button>)}</div>
+            {tab === 'game' && <div className="mt-3 space-y-2">{modeResults.length ? modeResults.slice(0, 20).map((r) => <div key={r.period} className="flex items-center justify-between rounded-lg bg-[#f8f7f3] px-3 py-2"><span className="max-w-[68%] truncate font-mono text-[10px] text-slate-500">{r.period}</span><div className="flex items-center gap-2"><span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold text-white ${resultColor(r.number)}`}>{r.number}</span><span className="text-[10px] font-bold">{r.size}</span></div></div>) : <p className="py-8 text-center text-xs text-slate-400">No results yet.</p>}</div>}
+            {tab === 'chart' && <div className="mt-4"><div className="grid grid-cols-10 gap-1">{modeResults.slice(0, 30).reverse().map((r) => <div key={r.period} title={`${r.period}: ${r.number}`} className={`grid aspect-square place-items-center rounded-md text-[10px] font-bold text-white ${resultColor(r.number)}`}>{r.number}</div>)}</div><p className="mt-3 text-[10px] text-slate-500">Latest settled results, oldest to newest.</p></div>}
+            {tab === 'mine' && <div className="mt-3 space-y-2">{modeBets.length ? modeBets.slice(0, 30).map((b) => <div key={b.id} className="rounded-lg bg-[#f8f7f3] p-3"><div className="flex items-center justify-between gap-2"><span className="truncate font-mono text-[10px] text-slate-500">{b.period}</span><span className={`text-[10px] font-extrabold ${b.status === 'WON' ? 'text-emerald-600' : b.status === 'LOST' ? 'text-rose-500' : 'text-amber-600'}`}>{b.status}</span></div><div className="mt-2 flex justify-between text-xs"><span className="font-semibold">{b.type}: {b.selection}</span><span>{fmt(b.amount)} pts</span></div>{b.status !== 'PENDING' && <div className="mt-1 text-right text-[11px] font-bold">Payout: {fmt(b.payout)} pts</div>}</div>) : <p className="py-8 text-center text-xs text-slate-400">Your bets will appear here.</p>}</div>}
+          </aside>
+        </div>
+      </main>
+
+      {confirmOpen && selection && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"><div role="dialog" aria-modal="true" aria-labelledby="wingo-confirm-title" className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"><div className="flex items-center justify-between"><h2 id="wingo-confirm-title" className="text-lg font-extrabold">Confirm your bet</h2><button aria-label="Close confirmation" onClick={() => setConfirmOpen(false)}><X size={18} /></button></div><div className="mt-4 rounded-xl bg-[#f5f3ee] p-4"><div className="text-xs text-slate-500">{data?.currentRound.periodKey}</div><div className="mt-2 text-sm font-bold">{selectedLabel}</div><div className="mt-2 text-2xl font-extrabold">{fmt(amount)} <span className="text-xs text-slate-500">points</span></div><div className="mt-2 text-xs text-slate-500">Balance after stake: {fmt(Math.max(0, (data?.balance ?? 0) - amount))} points</div></div><div className="mt-4 grid grid-cols-2 gap-2"><button onClick={() => setConfirmOpen(false)} className="rounded-xl bg-slate-100 py-3 text-sm font-bold">Cancel</button><button disabled={placing || !data || amount > data.balance || secondsLeft <= 1} onClick={() => void submitBet()} className="rounded-xl bg-slate-900 py-3 text-sm font-bold text-white disabled:opacity-40">{placing ? 'Submitting…' : 'Confirm bet'}</button></div></div></div>}
+      {helpOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"><div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-5"><div className="flex items-center justify-between"><h2 className="text-lg font-extrabold">How Wingo works</h2><button aria-label="Close rules" onClick={() => setHelpOpen(false)}><X size={18} /></button></div><ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-600"><li>Choose a round mode, then pick a number, color, or Big/Small.</li><li>Confirm a whole-number stake using your virtual Wingo points.</li><li>Stakes are deducted immediately. Winning payouts are credited after the round settles.</li><li>Round outcomes and payouts are determined server-side; virtual points have no cash value.</li></ul><button onClick={() => setHelpOpen(false)} className="mt-5 w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white">Got it</button></div></div>}
+    </div>
+  )
+}

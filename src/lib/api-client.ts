@@ -12,8 +12,23 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+function buildUrl(path: string, params?: Record<string, string | number | boolean | null | undefined>) {
+  const cleanPath = path.startsWith('/api') ? path : `/api${path.startsWith('/') ? path : `/${path}`}`
+  if (!params) return cleanPath
+
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value == null) continue
+    search.append(key, String(value))
+  }
+
+  const qs = search.toString()
+  return qs ? `${cleanPath}${cleanPath.includes('?') ? '&' : '?'}${qs}` : cleanPath
+}
+
+async function request<T>(path: string, init?: RequestInit, params?: Record<string, string | number | boolean | null | undefined>): Promise<T> {
+  const url = buildUrl(path, params)
+  const res = await fetch(url, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
     credentials: 'include',
@@ -28,7 +43,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>(path, { method: 'GET' }),
+  get: <T>(path: string, params?: Record<string, string | number | boolean | null | undefined>) => request<T>(path, { method: 'GET' }, params),
   post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }

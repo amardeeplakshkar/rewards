@@ -1,0 +1,1 @@
+import { withApi, ok } from '@/lib/api/handler'; import { multiplierState } from '@/services/casino-games'; export const GET=withApi(async({payload,req,user},request)=>{const id=Number(request.nextUrl.searchParams.get('roundId'));return ok(await multiplierState(payload,req,user!.id,id))})

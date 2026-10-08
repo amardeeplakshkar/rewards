@@ -5,10 +5,12 @@ const bool = z
   .optional()
   .transform((v) => v === 'true' || v === '1')
 
+const devFallbackPayloadSecret = 'dev-payload-secret-change-me'
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  PAYLOAD_SECRET: z.string().min(16, 'PAYLOAD_SECRET must be at least 16 characters'),
+  PAYLOAD_SECRET: z.string().min(16, 'PAYLOAD_SECRET must be at least 16 characters').default(devFallbackPayloadSecret),
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
   REDIS_URL: z.string().optional(),
   DATA_ENCRYPTION_KEY: z

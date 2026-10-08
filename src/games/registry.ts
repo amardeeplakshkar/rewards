@@ -7,6 +7,7 @@ import { numberSequenceEngine } from './number-sequence-engine'
 import { mathEngine } from './math-engine'
 import { reactionEngine } from './reaction-engine'
 import { spinWheelEngine } from './spin-wheel-engine'
+import { wingoEngine } from './wingo-engine'
 
 export const ENGINES: Record<GameType, GameEngine> = {
   QUIZ: quizEngine,
@@ -16,4 +17,5 @@ export const ENGINES: Record<GameType, GameEngine> = {
   MATH: mathEngine,
   REACTION: reactionEngine,
   SPIN_WHEEL: spinWheelEngine,
+  WINGO: wingoEngine,
 }

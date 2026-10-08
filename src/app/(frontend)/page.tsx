@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Brain, Calculator, ChevronRight, CircleQuestionMark, Dice1, Grid3x3, LifeBuoy, Zap, Gamepad, User2Icon } from 'lucide-react'
+import { Brain, Calculator, ChevronRight, CircleQuestionMark, Dice1, Grid3x3, LifeBuoy, Zap, Gamepad, User2Icon, ChevronLeft } from 'lucide-react'
 import { AppShell } from '@/components/AppShell'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,59 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/components/AuthProvider'
 import { api } from '@/lib/api-client'
 import { money } from '@/lib/format'
+
+function BannerCard({
+  banner,
+}: {
+  banner: {
+    id: number
+    title: string
+    description?: string
+    ctaLabel?: string
+    ctaUrl?: string
+    image?: string | null
+  }
+}) {
+  return (
+    <div className="relative min-h-[150px] overflow-hidden rounded-2xl border border-white/10 bg-[#0D1526]">
+      {banner.image ? (
+        <>
+          <img
+            src={banner.image}
+            alt={banner.title}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+
+          {/* Readability overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/10" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#072422] via-[#091C27] to-[#12112C]" />
+      )}
+
+      <div className="relative z-10 flex min-h-[150px] items-center p-5 pr-12">
+        <div className="max-w-[75%]">
+          <h3 className="text-base font-black tracking-wide text-white">
+            {banner.title}
+          </h3>
+
+          {banner.description && (
+            <p className="mt-1 text-[11px] leading-relaxed text-slate-300">
+              {banner.description}
+            </p>
+          )}
+
+          {banner.ctaLabel && (
+            <span className="mt-3 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-500 px-3 py-1.5 text-[10px] font-bold text-slate-950 shadow-lg shadow-amber-500/20">
+              {banner.ctaLabel}
+              <span>→</span>
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 interface HomeData {
   maintenance: boolean
@@ -31,21 +84,23 @@ interface WalletStats {
 const getGameEmoji = (type: string) => {
   switch (type) {
     case 'QUIZ':
-      return <CircleQuestionMark/>
+      return <CircleQuestionMark />
     case 'SUDOKU':
       return <Grid3x3 />
     case 'MEMORY':
-      return <Brain/>
+      return <Brain />
     case 'MATH':
-      return <Calculator/>
+      return <Calculator />
     case 'REACTION':
-      return <Zap/>
+      return <Zap />
     case 'SPIN_WHEEL':
       return <LifeBuoy />
+    case 'WINGO':
+      return <Dice1 />
     case 'NUMBER_SEQUENCE':
-      return <Dice1/>
+      return <Dice1 />
     default:
-      return <Gamepad/>
+      return <Gamepad />
   }
 }
 
@@ -54,6 +109,7 @@ export default function HomePage() {
   const [data, setData] = useState<HomeData | null>(null)
   const [walletStats, setWalletStats] = useState<WalletStats | null>(null)
   const [unread, setUnread] = useState(0)
+  const [bannerIndex, setBannerIndex] = useState(0)
 
   useEffect(() => {
     api.get<HomeData>('/home').then(setData).catch(() => null)
@@ -94,7 +150,7 @@ export default function HomePage() {
             <section className="flex items-center gap-3 px-1" data-purpose="user-greeting">
               <div className="relative w-12 h-12 rounded-full ring-2 ring-amber-400/70 ring-offset-2 ring-offset-[#060B14] overflow-hidden flex-shrink-0">
                 <div className="w-full h-full bg-gradient-to-br from-amber-600 via-amber-700 to-slate-800 flex items-center justify-center text-xl">
-                  <User2Icon size={16}/>
+                  <User2Icon size={16} />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
@@ -196,7 +252,89 @@ export default function HomePage() {
               </div>
             </Card>
           )}
+          {/* ─── DB Banners Carousel ─── */}
+          {data.banners?.length > 0 && (
+            <section className="relative">
+              <div className="relative overflow-hidden rounded-2xl">
+                <div
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{
+                    transform: `translateX(-${bannerIndex * 100}%)`,
+                  }}
+                >
+                  {data.banners.map((banner) => (
+                    <div
+                      key={banner.id}
+                      className="w-full shrink-0"
+                    >
+                      {banner.ctaUrl ? (
+                        <Link href={banner.ctaUrl} className="block">
+                          <BannerCard banner={banner} />
+                        </Link>
+                      ) : (
+                        <BannerCard banner={banner} />
+                      )}
+                    </div>
+                  ))}
+                </div>
 
+                {/* Previous */}
+                {data.banners.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setBannerIndex((prev) =>
+                          prev === 0 ? data.banners.length - 1 : prev - 1
+                        )
+                      }
+                      className="absolute left-2 top-1/2 -translate-y-1/2
+                       w-7 h-7 rounded-full bg-black/40
+                       border border-white/10 backdrop-blur-sm
+                       flex items-center justify-center
+                       text-white hover:bg-black/60 transition"
+                    >
+                      <ChevronLeft size={15} />
+                    </button>
+
+                    {/* Next */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setBannerIndex((prev) =>
+                          prev === data.banners.length - 1 ? 0 : prev + 1
+                        )
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2
+                       w-7 h-7 rounded-full bg-black/40
+                       border border-white/10 backdrop-blur-sm
+                       flex items-center justify-center
+                       text-white hover:bg-black/60 transition"
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+                  </>
+                )}
+
+                {/* Dots */}
+                {data.banners.length > 1 && (
+                  <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {data.banners.map((banner, index) => (
+                      <button
+                        key={banner.id}
+                        type="button"
+                        onClick={() => setBannerIndex(index)}
+                        className={`h-1.5 rounded-full transition-all ${index === bannerIndex
+                            ? 'w-5 bg-amber-400'
+                            : 'w-1.5 bg-white/40'
+                          }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
           {/* ─── Daily Tasks Banner ─── */}
           <Link href="/earn" className="block">
             <section

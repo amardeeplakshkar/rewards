@@ -42,6 +42,7 @@ export interface Config {
     'sudoku-puzzles': SudokuPuzzle;
     campaigns: Campaign;
     'campaign-claims': CampaignClaim;
+    'casino-rounds': CasinoRound;
     'referral-rules': ReferralRule;
     referrals: Referral;
     withdrawals: Withdrawal;
@@ -51,6 +52,10 @@ export interface Config {
     notifications: Notification;
     media: Media;
     'audit-logs': AuditLog;
+    'wingo-rounds': WingoRound;
+    'wingo-bets': WingoBet;
+    'wingo-point-wallets': WingoPointWallet;
+    'wingo-point-transactions': WingoPointTransaction;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -71,6 +76,7 @@ export interface Config {
     'sudoku-puzzles': SudokuPuzzlesSelect<false> | SudokuPuzzlesSelect<true>;
     campaigns: CampaignsSelect<false> | CampaignsSelect<true>;
     'campaign-claims': CampaignClaimsSelect<false> | CampaignClaimsSelect<true>;
+    'casino-rounds': CasinoRoundsSelect<false> | CasinoRoundsSelect<true>;
     'referral-rules': ReferralRulesSelect<false> | ReferralRulesSelect<true>;
     referrals: ReferralsSelect<false> | ReferralsSelect<true>;
     withdrawals: WithdrawalsSelect<false> | WithdrawalsSelect<true>;
@@ -80,6 +86,10 @@ export interface Config {
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
+    'wingo-rounds': WingoRoundsSelect<false> | WingoRoundsSelect<true>;
+    'wingo-bets': WingoBetsSelect<false> | WingoBetsSelect<true>;
+    'wingo-point-wallets': WingoPointWalletsSelect<false> | WingoPointWalletsSelect<true>;
+    'wingo-point-transactions': WingoPointTransactionsSelect<false> | WingoPointTransactionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -278,6 +288,7 @@ export interface WalletTransaction {
   type:
     | 'TASK_REWARD'
     | 'GAME_REWARD'
+    | 'GAME_BET'
     | 'CAMPAIGN_REWARD'
     | 'REFERRAL_REWARD'
     | 'BONUS'
@@ -536,7 +547,7 @@ export interface Game {
   name: string;
   slug: string;
   description: string;
-  type: 'QUIZ' | 'SUDOKU' | 'MEMORY' | 'NUMBER_SEQUENCE' | 'MATH' | 'REACTION' | 'SPIN_WHEEL';
+  type: 'QUIZ' | 'SUDOKU' | 'MEMORY' | 'NUMBER_SEQUENCE' | 'MATH' | 'REACTION' | 'SPIN_WHEEL' | 'WINGO';
   /**
    * Drives question/puzzle difficulty. Quiz supports Easy–Hard; Sudoku supports Easy–Expert.
    */
@@ -888,6 +899,32 @@ export interface CampaignClaim {
     | number
     | boolean
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "casino-rounds".
+ */
+export interface CasinoRound {
+  id: number;
+  game: 'MINE' | 'POKER' | 'CRASH' | 'SLIDE';
+  user: number | User;
+  status: 'ACTIVE' | 'WON' | 'LOST' | 'CASHED_OUT' | 'REFUNDED';
+  betAmount: number;
+  payoutAmount?: number | null;
+  currency: string;
+  state:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  startedAt: string;
+  settledAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1262,6 +1299,79 @@ export interface AuditLog {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-rounds".
+ */
+export interface WingoRound {
+  id: number;
+  periodKey: string;
+  mode: '30s' | '1m' | '3m' | '5m';
+  status: 'OPEN' | 'SETTLED';
+  startAt: string;
+  bettingClosesAt: string;
+  endsAt: string;
+  winningNumber?: number | null;
+  settledAt?: string | null;
+  settlementVersion?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-bets".
+ */
+export interface WingoBet {
+  id: number;
+  user: number | User;
+  round: number | WingoRound;
+  periodKey: string;
+  mode: '30s' | '1m' | '3m' | '5m';
+  type: 'number' | 'color' | 'size';
+  selection: string;
+  stake: number;
+  payout: number;
+  status: 'PENDING' | 'WON' | 'LOST';
+  winningNumber?: number | null;
+  idempotencyKey: string;
+  settledAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Virtual game points only. Not withdrawable and not convertible to currency.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-point-wallets".
+ */
+export interface WingoPointWallet {
+  id: number;
+  user: number | User;
+  balance: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-point-transactions".
+ */
+export interface WingoPointTransaction {
+  id: number;
+  user: number | User;
+  type: 'STAKE' | 'PAYOUT' | 'GRANT' | 'REFUND';
+  /**
+   * Signed point movement.
+   */
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  referenceType?: string | null;
+  referenceId?: string | null;
+  idempotencyKey: string;
+  description: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1337,6 +1447,10 @@ export interface PayloadLockedDocument {
         value: number | CampaignClaim;
       } | null)
     | ({
+        relationTo: 'casino-rounds';
+        value: number | CasinoRound;
+      } | null)
+    | ({
         relationTo: 'referral-rules';
         value: number | ReferralRule;
       } | null)
@@ -1371,6 +1485,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'audit-logs';
         value: number | AuditLog;
+      } | null)
+    | ({
+        relationTo: 'wingo-rounds';
+        value: number | WingoRound;
+      } | null)
+    | ({
+        relationTo: 'wingo-bets';
+        value: number | WingoBet;
+      } | null)
+    | ({
+        relationTo: 'wingo-point-wallets';
+        value: number | WingoPointWallet;
+      } | null)
+    | ({
+        relationTo: 'wingo-point-transactions';
+        value: number | WingoPointTransaction;
       } | null);
   globalSlug?: string | null;
   user:
@@ -1805,6 +1935,23 @@ export interface CampaignClaimsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "casino-rounds_select".
+ */
+export interface CasinoRoundsSelect<T extends boolean = true> {
+  game?: T;
+  user?: T;
+  status?: T;
+  betAmount?: T;
+  payoutAmount?: T;
+  currency?: T;
+  state?: T;
+  startedAt?: T;
+  settledAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "referral-rules_select".
  */
 export interface ReferralRulesSelect<T extends boolean = true> {
@@ -2025,6 +2172,70 @@ export interface AuditLogsSelect<T extends boolean = true> {
   metadata?: T;
   ip?: T;
   userAgent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-rounds_select".
+ */
+export interface WingoRoundsSelect<T extends boolean = true> {
+  periodKey?: T;
+  mode?: T;
+  status?: T;
+  startAt?: T;
+  bettingClosesAt?: T;
+  endsAt?: T;
+  winningNumber?: T;
+  settledAt?: T;
+  settlementVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-bets_select".
+ */
+export interface WingoBetsSelect<T extends boolean = true> {
+  user?: T;
+  round?: T;
+  periodKey?: T;
+  mode?: T;
+  type?: T;
+  selection?: T;
+  stake?: T;
+  payout?: T;
+  status?: T;
+  winningNumber?: T;
+  idempotencyKey?: T;
+  settledAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-point-wallets_select".
+ */
+export interface WingoPointWalletsSelect<T extends boolean = true> {
+  user?: T;
+  balance?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wingo-point-transactions_select".
+ */
+export interface WingoPointTransactionsSelect<T extends boolean = true> {
+  user?: T;
+  type?: T;
+  amount?: T;
+  balanceBefore?: T;
+  balanceAfter?: T;
+  referenceType?: T;
+  referenceId?: T;
+  idempotencyKey?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }

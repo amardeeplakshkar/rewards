@@ -1,0 +1,1 @@
+import { withApi, ok } from '@/lib/api/handler'; import { multiplierStart } from '@/services/casino-games'; export const POST=withApi(async({payload,req,user},request)=>{const b=await request.json();return ok(await multiplierStart(payload,req,user!.id,'CRASH',Number(b.betAmount),Number(b.target)),201)})
