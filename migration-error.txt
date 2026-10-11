@@ -1,0 +1,21 @@
+4-
+5-If you'd like to run migrations, data loss will occur. Would you like to proceed?[22m [90m›[39m [90m(y/N)[39m[2K[1G[2K[1G[32m✔[39m [1mIt looks like you've run Payload in dev mode, meaning you've dynamically pushed changes to your database.
+6-
+7-If you'd like to run migrations, data loss will occur. Would you like to proceed?[22m [90m…[39m yes
+8-[?25h[20:33:24] [32mINFO[39m: [36mMigrating: 20261011_143932[39m
+9:[20:33:26] [31mERROR[39m: [36mError running migration 20261011_143932 Failed query: 
+10-   CREATE TYPE "public"."enum_admins_roles" AS ENUM('SUPER_ADMIN', 'ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER', 'SUPPORT_AGENT');
+11-  CREATE TYPE "public"."enum_users_status" AS ENUM('ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED', 'BLOCKED', 'DELETED');
+12-  CREATE TYPE "public"."enum_wallets_status" AS ENUM('ACTIVE', 'FROZEN');
+13-  CREATE TYPE "public"."enum_wallet_transactions_type" AS ENUM('TASK_REWARD', 'GAME_REWARD', 'GAME_BET', 'CAMPAIGN_REWARD', 'REFERRAL_REWARD', 'BONUS', 'WITHDRAWAL', 'REFUND', 'ADMIN_CREDIT', 'ADMIN_DEBIT', 'REVERSAL');
+14-  CREATE TYPE "public"."enum_wallet_transactions_status" AS ENUM('COMPLETED');
+15-  CREATE TYPE "public"."enum_wallet_adjustments_type" AS ENUM('CREDIT', 'DEBIT', 'REVERSAL');
+16-  CREATE TYPE "public"."enum_wallet_adjustments_status" AS ENUM('APPLIED');
+17-  CREATE TYPE "public"."enum_tasks_reward_type" AS ENUM('CASH', 'BONUS');
+18-  CREATE TYPE "public"."enum_tasks_status" AS ENUM('DRAFT', 'SCHEDULED', 'ACTIVE', 'PAUSED', 'EXPIRED', 'DISABLED');
+19-  CREATE TYPE "public"."enum_tasks_startsat_tz" AS ENUM('Asia/Kolkata', 'UTC', 'Asia/Dubai', 'Asia/Singapore', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Australia/Sydney');
+20-  CREATE TYPE "public"."enum_tasks_endsat_tz" AS ENUM('Asia/Kolkata', 'UTC', 'Asia/Dubai', 'Asia/Singapore', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Australia/Sydney');
+21-  CREATE TYPE "public"."enum_tasks_verification_type" AS ENUM('NONE', 'TIMER', 'ANSWER_CODE', 'TEXT_SUBMISSION', 'MANUAL_REVIEW');
+22-  CREATE TYPE "public"."enum_task_completions_status" AS ENUM('STARTED', 'SUBMITTED', 'COMPLETED', 'REJECTED', 'EXPIRED');
+23-  CREATE TYPE "public"."enum_games_config_math_operations" AS ENUM('ADDITION', 'SUBTRACTION', 'MULTIPLICATION', 'DIVISION', 'PERCENTAGE', 'MIXED');
+24-  CREATE TYPE "public"."enum_games_type" AS ENUM('QUIZ', 'SUDOKU', 'MEMORY', 'NUMBER_SEQUENCE', 'MATH', 'REACTION', 'SPIN_WHEEL', 'WINGO');
