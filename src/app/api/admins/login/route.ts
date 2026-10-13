@@ -25,17 +25,14 @@ export async function POST(req: NextRequest) {
       cookiePrefix: payload.config.cookiePrefix,
       token: result.token,
     })
+    // Payload's admin login form consumes its standard auth response shape.
+    // Keep the token in the response as Payload does, in addition to setting
+    // the session cookie, so the admin client can hydrate its auth state.
     const res = NextResponse.json({
-      ok: true,
-      data: {
-        user: {
-          id: result.user.id,
-          email: result.user.email,
-          name: result.user.name,
-          roles: (result.user as { roles?: string[] }).roles,
-          isActive: (result.user as { isActive?: boolean }).isActive,
-        },
-      },
+      message: 'Auth Passed',
+      user: result.user,
+      token: result.token,
+      exp: result.exp,
     })
     res.headers.append('Set-Cookie', cookie)
     return res
