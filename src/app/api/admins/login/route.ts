@@ -10,7 +10,11 @@ const schema = z.object({ email: z.string().email(), password: z.string().min(1)
 
 export async function POST(req: NextRequest) {
   try {
-    const body = schema.parse(await req.json())
+    const contentType = req.headers.get('content-type')?.toLowerCase() ?? ''
+    const submittedCredentials = contentType.includes('application/json')
+      ? await req.json()
+      : Object.fromEntries(await req.formData())
+    const body = schema.parse(submittedCredentials)
     const ip = getClientIp(req.headers)
     await enforceRateLimit(LIMITS.loginIp, ip, 'Too many login attempts from this network. Please try again later.')
     await enforceRateLimit(LIMITS.loginAccount, body.email.toLowerCase(), 'Too many login attempts for this account. Please try again later.')
