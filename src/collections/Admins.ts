@@ -1,9 +1,13 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadHandler } from 'payload'
 import { ADMIN_ROLES, toOptions } from '@/constants'
 import { fieldAllow, hasRole, isAdminUser, superAdminOnly } from '@/access'
 import { auditCollectionHooks } from '@/hooks/audit'
 
 const prod = process.env.NODE_ENV === 'production'
+
+/** Built-in Payload auth endpoints are replaced by /api/admins/* (rate limited, status aware). */
+const useAppAuthRoutes: PayloadHandler = () =>
+  Response.json({ ok: false, error: { code: 'NOT_FOUND', message: 'Use the application auth endpoints.' } }, { status: 404 })
 
 /** Staff accounts for the Payload admin panel. End users live in the separate `users` collection. */
 export const Admins: CollectionConfig = {
@@ -21,6 +25,12 @@ export const Admins: CollectionConfig = {
     lockTime: 15 * 60 * 1000,
     cookies: { secure: prod, sameSite: 'Lax' },
   },
+  endpoints: [
+    { path: '/login', method: 'post', handler: useAppAuthRoutes },
+    { path: '/forgot-password', method: 'post', handler: useAppAuthRoutes },
+    { path: '/reset-password', method: 'post', handler: useAppAuthRoutes },
+    { path: '/unlock', method: 'post', handler: useAppAuthRoutes },
+  ],
   access: {
     admin: ({ req }) => isAdminUser(req.user),
     create: superAdminOnly,
