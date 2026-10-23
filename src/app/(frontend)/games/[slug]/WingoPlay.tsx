@@ -56,8 +56,12 @@ export function WingoPlay(_props?: { state?: unknown; onSubmit?: (answer: unknow
 
   useEffect(() => { void load() }, [load])
   useEffect(() => {
+    const timer = window.setInterval(() => setClock(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
-      setClock(Date.now())
       void load(true)
     }, 2500)
     return () => window.clearInterval(timer)
