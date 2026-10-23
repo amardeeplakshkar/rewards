@@ -23,6 +23,9 @@
     "reconcile": "tsx scripts/reconcile-wallets.ts"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
     "@dnd-kit/core": "^6.3.1",
     "@heroui/image": "^2.2.19",
     "@heroui/react": "^3.2.6",
