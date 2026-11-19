@@ -84,3 +84,18 @@ ledger — it never writes anything, only reports mismatches.
 Call `POST /api/cron/tick` with header `Authorization: Bearer $CRON_SECRET` once a minute (any external
 scheduler — cron, a hosting platform's scheduled functions, etc.) to activate/expire scheduled tasks, games
 and campaigns, send campaign start/ending notifications, and expire abandoned game sessions.
+
+
+## Scheduled jobs (Supabase pg_cron, no Vercel requests)
+
+Wingo settlement and the scheduled-content tick run **inside Supabase Postgres** with `pg_cron`,
+so no external cron service calls Vercel.
+
+1. Supabase Dashboard -> SQL Editor -> paste and run `supabase/cron.sql` (safe to re-run).
+2. Delete any external cron jobs that call `/api/wingo/settle` or `/api/cron/tick`.
+3. Check it's running: `select jobname, schedule from cron.job;` and
+   `select * from cron.job_run_details order by start_time desc limit 20;`
+
+Jobs: `rw-wingo-tick` (every 5s: settle ended rounds + pre-create next rounds),
+`rw-cron-tick` (every minute: activate/expire tasks, games, campaigns, notifications, stale sessions),
+`rw-cron-cleanup` (hourly: trims pg_cron's run log). The two API routes still work as manual fallbacks.

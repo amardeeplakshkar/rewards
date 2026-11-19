@@ -80,7 +80,7 @@ export async function placeWingoBet(input: {
   })
 }
 
-/** Settle ended rounds exactly once. Called from the cron route and opportunistically by state/history reads. */
+/** Settle ended rounds exactly once. Normally done by Supabase pg_cron (public.rw_wingo_settle_due); kept for the manual /api/wingo/settle fallback. */
 export async function settleDueWingoRounds(payload: Payload, req?: Req, now = new Date()) {
   const due = await payload.find({ collection: 'wingo-rounds', where: { status: { equals: 'OPEN' }, endsAt: { less_than_equal: now.toISOString() } }, sort: 'endsAt', limit: 100, depth: 0, overrideAccess: true, req: req as PayloadRequest | undefined })
   let settled = 0
@@ -124,9 +124,10 @@ export async function runWingoTick(payload: Payload, req?: Req) {
 
 export async function getWingoState(payload: Payload, req: Req, userId: number, modeInput: unknown) {
   const mode: WingoMode = modeOrError(modeInput)
-  await settleDueWingoRounds(payload, req)
+  // Settlement + round creation now run inside Supabase (pg_cron -> public.rw_wingo_tick(), see
+  // supabase/cron.sql). Reads stay cheap: no settlement work on every poll. getOrCreateCurrentRound
+  // is only a fallback for the rare moment before the DB job has created the round.
   const now = Date.now()
-  await ensureAllCurrentWingoRounds(payload, req, now)
   const current = await getOrCreateCurrentRound(payload, req, mode, now)
   const wallet = await getWallet(payload, userId)
   const [results, mine] = await Promise.all([
