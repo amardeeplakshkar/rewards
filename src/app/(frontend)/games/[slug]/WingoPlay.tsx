@@ -60,11 +60,23 @@ export function WingoPlay(_props?: { state?: unknown; onSubmit?: (answer: unknow
     return () => window.clearInterval(timer)
   }, [])
 
+  // Poll lightly: refresh ~2s after the current round ends (when Supabase has settled it),
+  // plus a slow 20s heartbeat. Pause entirely while the tab is hidden.
+  const roundEndsAt = data?.currentRound.endsAt
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      void load(true)
-    }, 2500)
-    return () => window.clearInterval(timer)
+    const endMs = roundEndsAt ? new Date(roundEndsAt).getTime() : 0
+    const delay = endMs ? Math.min(Math.max(endMs - Date.now() + 2000, 1000), 20_000) : 5000
+    const timer = window.setTimeout(() => {
+      if (document.visibilityState === 'visible') void load(true)
+      else setData((d) => (d ? { ...d } : d))
+    }, delay)
+    return () => window.clearTimeout(timer)
+  }, [load, roundEndsAt, data])
+
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') void load(true) }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [load])
 
   const secondsLeft = useMemo(() => {
