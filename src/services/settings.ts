@@ -14,6 +14,9 @@ export interface AppSettings {
     defaultReferralQualification: string
     defaultReferralQualificationAmount: number
     defaultReferralPerReferrerLimit: number
+    attendanceEnabled: boolean
+    /** Paise per streak day; index 0 = day 1. Last value repeats. */
+    attendanceRewards: number[]
   }
   features: {
     gamesEnabled: boolean
@@ -55,6 +58,8 @@ async function load(payload: Payload): Promise<AppSettings> {
       defaultReferralQualification: reward.defaultReferralQualification ?? 'FIRST_TASK',
       defaultReferralQualificationAmount: reward.defaultReferralQualificationAmount ?? 0,
       defaultReferralPerReferrerLimit: reward.defaultReferralPerReferrerLimit ?? 50,
+      attendanceEnabled: Boolean(reward.attendanceEnabled),
+      attendanceRewards: (reward.attendanceRewards ?? []).map((r) => r.amount).filter((a): a is number => Number.isSafeInteger(a) && a > 0),
     },
     features: {
       gamesEnabled: features.gamesEnabled ?? true,

@@ -9,6 +9,7 @@ export interface SessionUser {
   name: string
   status: string
   referralCode?: string
+  lastLoginAt?: string | null
 }
 
 interface AuthState {

@@ -37,6 +37,9 @@ import { WingoBets } from './collections/WingoBets'
 import { WingoPointTransactions } from './collections/WingoPointTransactions'
 import { WingoPointWallets } from './collections/WingoPointWallets'
 import { WingoRounds } from './collections/WingoRounds'
+import { GiftCodes } from './collections/GiftCodes'
+import { GiftCodeRedemptions } from './collections/GiftCodeRedemptions'
+import { AttendanceClaims } from './collections/AttendanceClaims'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -106,6 +109,9 @@ export default buildConfig({
     WingoBets,
     WingoPointWallets,
     WingoPointTransactions,
+    GiftCodes,
+    GiftCodeRedemptions,
+    AttendanceClaims,
   ],
   globals: [SiteSettings, RewardSettings, FeatureSettings, LegalSettings],
   editor: lexicalEditor(),

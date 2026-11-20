@@ -66,6 +66,20 @@ export const RewardSettings: GlobalConfig = {
       label: 'Game defaults',
       fields: [moneyField('defaultGameReward', { defaultValue: 50, admin: { description: 'Suggested reward when creating a new game.' } })],
     },
+    {
+      type: 'collapsible',
+      label: 'Daily check-in',
+      fields: [
+        { name: 'attendanceEnabled', type: 'checkbox', defaultValue: false, admin: { description: 'Show the daily check-in bonus to users.' } },
+        {
+          name: 'attendanceRewards',
+          type: 'array',
+          labels: { singular: 'Day', plural: 'Days' },
+          admin: { description: 'Reward for day 1, day 2, ... of a consecutive streak. After the last day, the last amount repeats. Missing a day resets the streak to day 1.' },
+          fields: [moneyField('amount', { required: true, min: 1 })],
+        },
+      ],
+    },
   ],
 }
 
