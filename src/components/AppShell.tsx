@@ -10,15 +10,18 @@ export function AppShell({
   right,
   showBack = false,
   hideHeader = false,
+  bleed = false,
 }: {
   children: React.ReactNode
   title?: string
   right?: React.ReactNode
   showBack?: boolean
   hideHeader?: boolean
+  /** Let content run edge to edge (for full-width header blocks like the Account page). */
+  bleed?: boolean
 }) {
   return (
-    <div className="min-h-dvh bg-(--app-dark) pb-24">
+    <div className="min-h-dvh bg-(--app-dark) pb-28">
       {!hideHeader && (
         <header className="safe-top sticky top-0 z-30 flex items-center justify-between bg-(--app-dark)/95   backdrop-blur">
           {title ? (
@@ -71,7 +74,7 @@ export function AppShell({
         </header>
       )}
 
-      <main className="mx-auto max-w-md px-4">{children}</main>
+      <main className={bleed ? 'mx-auto max-w-md' : 'mx-auto max-w-md px-4'}>{children}</main>
       <BottomNav />
     </div>
   )
