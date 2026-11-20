@@ -56,6 +56,9 @@ export interface Config {
     'wingo-bets': WingoBet;
     'wingo-point-wallets': WingoPointWallet;
     'wingo-point-transactions': WingoPointTransaction;
+    'gift-codes': GiftCode;
+    'gift-code-redemptions': GiftCodeRedemption;
+    'attendance-claims': AttendanceClaim;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +93,9 @@ export interface Config {
     'wingo-bets': WingoBetsSelect<false> | WingoBetsSelect<true>;
     'wingo-point-wallets': WingoPointWalletsSelect<false> | WingoPointWalletsSelect<true>;
     'wingo-point-transactions': WingoPointTransactionsSelect<false> | WingoPointTransactionsSelect<true>;
+    'gift-codes': GiftCodesSelect<false> | GiftCodesSelect<true>;
+    'gift-code-redemptions': GiftCodeRedemptionsSelect<false> | GiftCodeRedemptionsSelect<true>;
+    'attendance-claims': AttendanceClaimsSelect<false> | AttendanceClaimsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -1447,6 +1453,18 @@ export interface PayloadLockedDocument {
         value: number | CampaignClaim;
       } | null)
     | ({
+        relationTo: 'gift-codes';
+        value: number | GiftCode;
+      } | null)
+    | ({
+        relationTo: 'gift-code-redemptions';
+        value: number | GiftCodeRedemption;
+      } | null)
+    | ({
+        relationTo: 'attendance-claims';
+        value: number | AttendanceClaim;
+      } | null)
+    | ({
         relationTo: 'casino-rounds';
         value: number | CasinoRound;
       } | null)
@@ -2336,6 +2354,13 @@ export interface RewardSetting {
    */
   defaultReferralQualificationAmount?: number | null;
   defaultReferralPerReferrerLimit?: number | null;
+  attendanceEnabled?: boolean | null;
+  attendanceRewards?:
+    | {
+        amount: number;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Suggested reward when creating a new game.
    */
@@ -2463,6 +2488,13 @@ export interface RewardSettingsSelect<T extends boolean = true> {
   maxOpenWithdrawals?: T;
   defaultReferralReward?: T;
   defaultReferralQualification?: T;
+  attendanceEnabled?: T;
+  attendanceRewards?:
+    | T
+    | {
+        amount?: T;
+        id?: T;
+      };
   defaultReferralQualificationAmount?: T;
   defaultReferralPerReferrerLimit?: T;
   defaultGameReward?: T;
@@ -2521,4 +2553,49 @@ export interface Auth {
 
 declare module 'payload' {
   export interface GeneratedTypes extends Config {}
+}
+/** Gift codes (hand-written to match the collection config; regenerate with `npm run generate:types`). */
+export interface GiftCode {
+  id: number;
+  code: string;
+  amount: number;
+  maxRedemptions?: number | null;
+  redemptionCount?: number | null;
+  isActive?: boolean | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+export interface GiftCodeRedemption {
+  id: number;
+  giftCode: number | GiftCode;
+  user: number | User;
+  code: string;
+  amount?: number | null;
+  transaction?: (number | null) | WalletTransaction;
+  redeemedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+export interface AttendanceClaim {
+  id: number;
+  user: number | User;
+  dayKey: string;
+  streakDay: number;
+  amount?: number | null;
+  transaction?: (number | null) | WalletTransaction;
+  claimedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+export interface GiftCodesSelect<T extends boolean = true> {
+  code?: T; amount?: T; maxRedemptions?: T; redemptionCount?: T; isActive?: T; startsAt?: T; expiresAt?: T; note?: T; updatedAt?: T; createdAt?: T;
+}
+export interface GiftCodeRedemptionsSelect<T extends boolean = true> {
+  giftCode?: T; user?: T; code?: T; amount?: T; transaction?: T; redeemedAt?: T; updatedAt?: T; createdAt?: T;
+}
+export interface AttendanceClaimsSelect<T extends boolean = true> {
+  user?: T; dayKey?: T; streakDay?: T; amount?: T; transaction?: T; claimedAt?: T; updatedAt?: T; createdAt?: T;
 }
