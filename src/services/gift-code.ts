@@ -24,11 +24,13 @@ export async function redeemGiftCode(payload: Payload, req: Partial<PayloadReque
     if (!gift || !gift.isActive) throw new AppError('NOT_FOUND', 'This gift code is not valid.')
     if (gift.startsAt && new Date(gift.startsAt).getTime() > now) throw new AppError('NOT_AVAILABLE', 'This gift code is not active yet.')
     if (gift.expiresAt && new Date(gift.expiresAt).getTime() <= now) throw new AppError('NOT_AVAILABLE', 'This gift code has expired.')
-    const used = gift.redemptionCount ?? 0
-    if (gift.maxRedemptions && used >= gift.maxRedemptions) throw new AppError('LIMIT_REACHED', 'This gift code has been fully claimed.')
-
+    // Check the user's own redemption first so someone who already redeemed a code that is now full is told
+    // "already redeemed" rather than "fully claimed".
     const already = await payload.count({ collection: 'gift-code-redemptions', where: { and: [{ giftCode: { equals: gift.id } }, { user: { equals: userId } }] }, overrideAccess: true, req: r })
     if (already.totalDocs > 0) throw new AppError('CONFLICT', 'You have already redeemed this code.')
+
+    const used = gift.redemptionCount ?? 0
+    if (gift.maxRedemptions && used >= gift.maxRedemptions) throw new AppError('LIMIT_REACHED', 'This gift code has been fully claimed.')
 
     const { transaction, wallet } = await creditWallet({
       payload,
