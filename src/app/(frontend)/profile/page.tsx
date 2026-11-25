@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  Bell, ChevronRight, CircleHelp, Copy, Gamepad2, Gift, History, LogOut, ReceiptText,
+  Bell, CalendarCheck, ChevronRight, CircleHelp, Copy, Gamepad2, Gift, History, LogOut, ReceiptText,
   RefreshCw, Settings, User2Icon, Users, Wallet,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -26,15 +26,16 @@ const QUICK = [
 ]
 
 const HISTORY = [
-  { href: '/transactions', title: 'Game history', sub: 'My game history', icon: Gamepad2 },
+  { href: '/game-history', title: 'Game history', sub: 'My game history', icon: Gamepad2 },
   { href: '/transactions', title: 'Transactions', sub: 'My transaction history', icon: ReceiptText },
-  { href: '/rewards', title: 'Rewards', sub: 'My earned rewards', icon: Gift },
+  { href: '/checkin', title: 'Check-in', sub: 'Daily attendance bonus', icon: CalendarCheck },
   { href: '/wallet', title: 'Withdraw', sub: 'My withdraw history', icon: History },
 ]
 
 const MENU = [
   { href: '/notifications', title: 'Notifications', icon: Bell },
-  { href: '/referrals', title: 'My referrals', icon: Users },
+  { href: '/gift', title: 'Gifts', icon: Gift },
+  { href: '/referrals', title: 'Agency', icon: Users },
   { href: '/settings', title: 'Settings', icon: Settings },
   { href: '/support', title: 'Help & support', icon: CircleHelp },
 ]
@@ -76,6 +77,9 @@ export default function ProfilePage() {
               UID <span className="opacity-50">|</span> {user.id} <Copy size={11} />
             </button>
             <p className="mt-1 truncate text-[11px] text-slate-400">{user.email}</p>
+            {user.lastLoginAt && (
+              <p className="truncate text-[11px] text-slate-500">Last login: {new Date(user.lastLoginAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+            )}
           </div>
         </div>
       </section>

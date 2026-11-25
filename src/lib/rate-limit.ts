@@ -56,4 +56,6 @@ export const LIMITS = {
   withdrawal: { name: 'withdrawal:create', limit: 5, windowSec: 60 * 60 },
   payoutMethod: { name: 'payout:write', limit: 20, windowSec: 60 * 60 },
   referralQualify: { name: 'referral:qualify', limit: 20, windowSec: 60 * 60 },
+  giftRedeem: { name: 'gift:redeem', limit: 10, windowSec: 60 * 60 },
+  attendanceClaim: { name: 'attendance:claim', limit: 10, windowSec: 60 * 60 },
 } satisfies Record<string, RateLimitRule>
